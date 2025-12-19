@@ -17,15 +17,12 @@ workflows:
       - name: Setup iOS project
         script: |
           echo "Verificando proyecto iOS..."
-          if [ ! -f "ios/TSXNEQUIKIL.xcodeproj/project.pbxproj" ]; then
-            echo "⚠️ project.pbxproj no encontrado"
-            echo "El proyecto iOS necesita project.pbxproj para funcionar"
-            echo "Verificando si podemos crearlo desde template..."
-            if command -v xcodebuild &> /dev/null; then
-              echo "Intentando crear proyecto mínimo..."
-              cd ios
-              mkdir -p TSXNEQUIKIL.xcodeproj
-              cat > TSXNEQUIKIL.xcodeproj/project.pbxproj << 'EOFPROJECT'
+          if [ ! -f "ios/TSXNEQUIKIL.xcodeproj/project.pbxproj" ] || [ ! -s "ios/TSXNEQUIKIL.xcodeproj/project.pbxproj" ]; then
+            echo "⚠️ project.pbxproj no encontrado o vacío"
+            echo "Generando project.pbxproj usando template rápido..."
+            cd ios
+            mkdir -p TSXNEQUIKIL.xcodeproj
+            cat > TSXNEQUIKIL.xcodeproj/project.pbxproj << 'EOFPROJECT'
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
