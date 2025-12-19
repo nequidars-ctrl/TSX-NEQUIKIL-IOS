@@ -22,7 +22,7 @@ workflows:
             echo "Generando project.pbxproj usando template rápido..."
             cd ios
             mkdir -p TSXNEQUIKIL.xcodeproj
-            cat > TSXNEQUIKIL.xcodeproj/project.pbxproj << 'EOFPROJECT'
+            python3 << 'PYTHON_SCRIPT'
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
@@ -139,14 +139,124 @@ workflows:
 	};
 	rootObject = 1 /* Project object */;
 }
-EOFPROJECT
-              echo "✅ project.pbxproj básico creado"
-              cd ..
-            else
-              echo "❌ xcodebuild no disponible, no se puede crear project.pbxproj"
-              echo "ERROR: El proyecto iOS necesita project.pbxproj en el repositorio"
-              exit 1
-            fi
+import os
+pbxproj_content = '''// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+		rootObject = 1 /* Project object */;
+		1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 3 /* Build configuration list for PBXProject "TSXNEQUIKIL" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4;
+			productRefGroup = 5 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2 /* TSXNEQUIKIL */,
+			);
+		};
+		2 /* TSXNEQUIKIL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6 /* Build configuration list for PBXNativeTarget "TSXNEQUIKIL" */;
+			buildPhases = (
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TSXNEQUIKIL;
+			productName = TSXNEQUIKIL;
+			productReference = 7 /* TSXNEQUIKIL.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3 /* Build configuration list for PBXProject "TSXNEQUIKIL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8 /* Debug */,
+				9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4 = {
+			isa = PBXGroup;
+			children = (
+				5 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7 /* TSXNEQUIKIL.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6 /* Build configuration list for PBXNativeTarget "TSXNEQUIKIL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				10 /* Debug */,
+				11 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7 /* TSXNEQUIKIL.app */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = TSXNEQUIKIL.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		10 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		11 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+	};
+	rootObject = 1 /* Project object */;
+}
+'''
+with open('TSXNEQUIKIL.xcodeproj/project.pbxproj', 'w') as f:
+    f.write(pbxproj_content)
+print("✅ project.pbxproj básico creado")
+PYTHON_SCRIPT
+            cd ..
           else
             echo "✅ project.pbxproj existe"
           fi
