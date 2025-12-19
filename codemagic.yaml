@@ -14,6 +14,22 @@ workflows:
       - name: Install dependencies
         script: |
           npm ci
+      - name: Setup iOS project
+        script: |
+          echo "Verificando proyecto iOS..."
+          if [ ! -f "ios/TSXNEQUIKIL.xcodeproj/project.pbxproj" ]; then
+            echo "⚠️ project.pbxproj no encontrado"
+            echo "El proyecto iOS necesita ser regenerado"
+            echo "Verificando estructura..."
+            ls -la ios/TSXNEQUIKIL.xcodeproj/ 2>/dev/null || echo "Directorio .xcodeproj vacío"
+            echo ""
+            echo "ERROR: El proyecto Xcode está incompleto"
+            echo "Necesitas regenerar el proyecto iOS localmente y subirlo a GitHub"
+            echo "O usar: npx react-native upgrade para regenerar iOS"
+            exit 1
+          else
+            echo "✅ project.pbxproj existe"
+          fi
       - name: Install CocoaPods dependencies
         script: |
           cd ios
