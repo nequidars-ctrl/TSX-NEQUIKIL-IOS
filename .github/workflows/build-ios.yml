@@ -1,0 +1,97 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'ios/**'
+      - 'src/**'
+      - 'package.json'
+      - '.github/workflows/build-ios.yml'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Create temporary provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          # Crear perfil temporal para desarrollo
+          cat > ~/Library/MobileDevice/Provisioning\ Profiles/temp.mobileprovision << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>UUID</key>
+            <string>temp-uuid</string>
+            <key>Name</key>
+            <string>Temp Development</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Build iOS app for simulator
+        run: |
+          cd ios
+          xcodebuild clean build \
+            -workspace TSXNEQUIKIL.xcworkspace \
+            -scheme TSXNEQUIKIL \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 14' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+          cd ..
+
+      - name: Create IPA for simulator
+        run: |
+          cd ios
+          mkdir -p build/Release-iphonesimulator/Payload
+          cp -r build/Release-iphonesimulator/TSXNEQUIKIL.app build/Release-iphonesimulator/Payload/
+          cd build/Release-iphonesimulator
+          zip -r TSXNEQUIKIL-simulator.ipa Payload
+          cd ../../..
+          mv ios/build/Release-iphonesimulator/TSXNEQUIKIL-simulator.ipa ios/build/
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-ipa-simulator
+          path: ios/build/*.ipa
+          retention-days: 30
+
+      - name: Build summary
+        run: |
+          echo "✅ Build completado!"
+          echo "📦 IPA generado para simulador iOS"
+          echo "📥 Descarga el artifact 'ios-ipa-simulator'"
+

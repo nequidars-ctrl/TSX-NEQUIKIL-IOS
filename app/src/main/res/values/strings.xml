@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nequi</string>
+    
+    <!-- Login Screen -->
+    <string name="login_title">Entra a tu Nequi</string>
+    <string name="login_subtitle">Ingresa tus datos para continuar</string>
+    <string name="phone_hint">Ingresa tu cel</string>
+    <string name="password_hint">Ingresa tu clave</string>
+    <string name="login_button">Entra</string>
+    <string name="help_button">Ayuda</string>
+    
+    <!-- Error Messages -->
+    <string name="error_phone_required">Escribe porfa el número de tu cel para seguir.</string>
+    <string name="error_phone_invalid">¡Ups! Debes escribir un número de cel válido.</string>
+    <string name="error_phone_min_length">¡Ups! Debes poner un número de cel.</string>
+    <string name="error_password_required">Debes ingresar tu clave para continuar.</string>
+    <string name="error_network">Error de conexión. Verifica tu internet e intenta nuevamente.</string>
+    <string name="error_login_generic">Error al iniciar sesión: %s</string>
+    
+    <!-- Success Messages -->
+    <string name="login_success">¡Bienvenido a Nequi!</string>
+    
+    <!-- Help -->
+    <string name="help_message">Para ayuda, llama a la línea de atención: 300 600 0100</string>
+</resources>
+
