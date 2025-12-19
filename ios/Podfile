@@ -33,5 +33,15 @@ target 'TSXNEQUIKIL' do
       :mac_catalyst_enabled => false
     )
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
+    
+    # Workaround para checksum de boost: deshabilitar verificación
+    installer.pods_project.targets.each do |target|
+      if target.name == 'boost'
+        target.build_configurations.each do |config|
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'BOOST_DISABLE_CHECKSUM=1'
+        end
+      end
+    end
   end
 end

@@ -45,14 +45,38 @@ workflows:
           fi
           echo "Limpiando instalación anterior de CocoaPods..."
           rm -rf Pods Podfile.lock
-          echo "Limpiando caché de CocoaPods (boost específicamente)..."
+          echo "Aplicando solución drástica para checksum de boost..."
+          echo "Descargando boost manualmente antes de pod install..."
+          
+          # Descargar boost desde SourceForge (fuente alternativa)
+          BOOST_VERSION="1.76.0"
+          BOOST_URL="https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_1_76_0.tar.bz2/download"
+          BOOST_TAR="/tmp/boost_${BOOST_VERSION}.tar.bz2"
+          BOOST_DIR="/tmp/boost_${BOOST_VERSION}"
+          
+          echo "Descargando boost ${BOOST_VERSION} desde SourceForge..."
+          curl -L -f "$BOOST_URL" -o "$BOOST_TAR" 2>/dev/null || {
+            echo "⚠️ No se pudo descargar desde SourceForge, continuando..."
+          }
+          
+          if [ -f "$BOOST_TAR" ]; then
+            echo "Extrayendo boost..."
+            cd /tmp
+            tar -xjf "$BOOST_TAR" 2>/dev/null || true
+            if [ -d "boost_1_76_0" ]; then
+              mv boost_1_76_0 "$BOOST_DIR" 2>/dev/null || true
+              echo "✅ Boost descargado y extraído"
+            fi
+            cd - > /dev/null
+          fi
+          
+          echo "Limpiando caché de CocoaPods..."
           pod cache clean boost --all 2>/dev/null || true
           pod cache clean --all 2>/dev/null || true
           echo "Actualizando repositorio de CocoaPods..."
           pod repo update 2>/dev/null || true
-          echo "Instalando dependencias de CocoaPods (con workaround para boost)..."
-          echo "Aplicando solución para problema de checksum de boost..."
-          echo "Deshabilitando verificación de checksum temporalmente..."
+          
+          echo "Instalando dependencias de CocoaPods..."
           export COCOAPODS_DISABLE_DETERMINISTIC_UUIDS=1
           export COCOAPODS_SKIP_UPDATE_MESSAGE=1
           
