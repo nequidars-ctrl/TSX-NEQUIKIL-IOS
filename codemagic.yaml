@@ -1,6 +1,6 @@
 workflows:
-  android-ios-workflow:
-    name: Android & iOS Workflow
+  ios-workflow:
+    name: iOS Workflow
     max_build_duration: 120
     instance_type: mac_mini_m1
     environment:
@@ -14,14 +14,6 @@ workflows:
       - name: Install dependencies
         script: |
           npm ci
-      
-      - name: Build Android APK
-        script: |
-          echo "🔨 Compilando Android APK..."
-          cd android
-          ./gradlew assembleRelease
-          cd ..
-          echo "✅ APK generado en: android/app/build/outputs/apk/release/"
       
       - name: Setup iOS project
         script: |
@@ -104,7 +96,6 @@ workflows:
           cd ../../..
     
     artifacts:
-      - android/app/build/outputs/apk/release/*.apk
       - build/ios/ipa/*.ipa
     
     publishing:
