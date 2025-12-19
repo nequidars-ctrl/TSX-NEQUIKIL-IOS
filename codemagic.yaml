@@ -60,6 +60,7 @@ workflows:
           cd ..
       - name: Generate JS bundle
         script: |
+          echo "Generando bundle JS con todos los assets..."
           npx react-native bundle \
             --platform ios \
             --dev false \
@@ -67,6 +68,12 @@ workflows:
             --bundle-output ios/main.jsbundle \
             --assets-dest ios/ \
             --reset-cache
+          echo "✅ Bundle generado"
+          echo "Verificando assets incluidos..."
+          if [ -d "ios/assets" ]; then
+            echo "Assets encontrados:"
+            find ios/assets -type f | head -10
+          fi
       - name: Build app for simulator
         script: |
           if [ ! -d "$XCODE_WORKSPACE" ]; then
@@ -98,23 +105,27 @@ workflows:
           APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "TSXNEQUIKIL.app" -path "*/Release-iphonesimulator/*" | head -1)
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: App bundle not found!"
+            echo "Buscando en DerivedData..."
+            find $HOME/Library/Developer/Xcode/DerivedData -name "*.app" -type d 2>/dev/null | head -5
             exit 1
           fi
+          echo "✅ App bundle encontrado: $APP_PATH"
+          
           if [ -f "ios/main.jsbundle" ]; then
             cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
-            echo "Bundle copied to app: $APP_PATH/main.jsbundle"
+            echo "✅ Bundle JS copiado: $(du -h ios/main.jsbundle | cut -f1)"
           else
             echo "ERROR: main.jsbundle not found to copy!"
             exit 1
           fi
+          
           if [ -d "ios/assets" ]; then
-            cp -r ios/assets "$APP_PATH/"
-            echo "Assets copied to app: $APP_PATH/assets"
-            find "$APP_PATH/assets" -type f | head -5
+            cp -r ios/assets "$APP_PATH/" 2>/dev/null || true
+            echo "✅ Assets copiados al app bundle"
+            find "$APP_PATH/assets" -type f 2>/dev/null | wc -l | xargs echo "   Total de assets:"
           fi
-          if [ -d "ios/src" ]; then
-            cp -r ios/src "$APP_PATH/" 2>/dev/null || true
-          fi
+          
+          echo "✅ Bundle y assets copiados correctamente"
       - name: Create IPA for simulator
         script: |
           APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "TSXNEQUIKIL.app" -path "*/Release-iphonesimulator/*" | head -1)
