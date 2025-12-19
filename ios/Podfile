@@ -22,9 +22,7 @@ target 'TSXNEQUIKIL' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  # Lottie
-  pod 'lottie-ios', :path => '../node_modules/lottie-ios'
-  pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
+  # Lottie - se instala automáticamente con use_native_modules!
 
   post_install do |installer|
     react_native_post_install(
