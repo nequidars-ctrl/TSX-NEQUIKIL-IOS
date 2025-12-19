@@ -86,18 +86,10 @@ workflows:
           done
           
           if [ "$INSTALL_SUCCESS" = false ]; then
-            echo "❌ Todos los intentos fallaron, intentando solución alternativa..."
-            echo "Modificando Podfile para usar versión específica de boost..."
-            if ! grep -q "pod 'boost'" Podfile; then
-              sed -i.bak '/use_react_native!/a\
-  pod '\''boost'\'', :'\''1.76.0'\'', :modular_headers => true
-' Podfile
-            fi
-            rm -rf Pods Podfile.lock
-            pod install --repo-update || {
-              echo "ERROR: No se pudo instalar dependencias incluso con solución alternativa"
-              exit 1
-            }
+            echo "❌ Todos los intentos fallaron"
+            echo "ERROR: No se pudo instalar dependencias después de $MAX_RETRIES intentos"
+            echo "El problema es con el checksum de boost. Esto puede ser un problema temporal del repositorio de CocoaPods."
+            exit 1
           fi
           if [ ! -d "TSXNEQUIKIL.xcworkspace" ]; then
             echo "ERROR: TSXNEQUIKIL.xcworkspace no se generó después de pod install!"
