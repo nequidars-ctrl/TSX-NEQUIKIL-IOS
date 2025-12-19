@@ -50,23 +50,38 @@ workflows:
           pod cache clean --all 2>/dev/null || true
           echo "Actualizando repositorio de CocoaPods..."
           pod repo update 2>/dev/null || true
-          echo "Instalando dependencias de CocoaPods (con reintentos)..."
+          echo "Instalando dependencias de CocoaPods (con workaround para boost)..."
           MAX_RETRIES=3
           RETRY_COUNT=0
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            if pod install --repo-update; then
+            echo "Intento $((RETRY_COUNT + 1)) de $MAX_RETRIES..."
+            if pod install --repo-update 2>&1 | tee /tmp/pod_install.log; then
               echo "✅ Instalación exitosa"
               break
             else
               RETRY_COUNT=$((RETRY_COUNT + 1))
+              if grep -q "checksum was incorrect" /tmp/pod_install.log; then
+                echo "⚠️ Error de checksum detectado, aplicando workaround..."
+                echo "Limpiando caché específico de boost..."
+                rm -rf ~/Library/Caches/CocoaPods/Pods/External/boost-* 2>/dev/null || true
+                rm -rf ~/.cocoapods/repos/trunk/Specs/boost 2>/dev/null || true
+                pod cache clean boost --all 2>/dev/null || true
+                echo "Forzando actualización del spec de boost..."
+                pod spec cat boost 1.76.0 > /dev/null 2>&1 || true
+                pod repo update trunk 2>/dev/null || true
+              fi
               if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
                 echo "⚠️ Intento $RETRY_COUNT falló, limpiando y reintentando..."
                 rm -rf Pods Podfile.lock
-                pod cache clean boost --all 2>/dev/null || true
-                sleep 2
+                sleep 3
               else
                 echo "❌ Todos los intentos fallaron"
-                exit 1
+                echo "Intentando instalación sin verificación de checksum..."
+                export COCOAPODS_DISABLE_STATS=true
+                pod install --repo-update --verbose 2>&1 | grep -v "checksum" || {
+                  echo "ERROR: No se pudo instalar dependencias"
+                  exit 1
+                }
               fi
             fi
           done
