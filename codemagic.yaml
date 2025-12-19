@@ -30,6 +30,11 @@ workflows:
             echo "CocoaPods debería encontrarlo automáticamente con project especificado en Podfile"
           fi
           pod install
+          if [ ! -d "TSXNEQUIKIL.xcworkspace" ]; then
+            echo "ERROR: TSXNEQUIKIL.xcworkspace no se generó después de pod install!"
+            exit 1
+          fi
+          echo "✅ TSXNEQUIKIL.xcworkspace generado correctamente"
           cd ..
       - name: Generate JS bundle
         script: |
@@ -42,6 +47,13 @@ workflows:
             --reset-cache
       - name: Build app for simulator
         script: |
+          if [ ! -d "$XCODE_WORKSPACE" ]; then
+            echo "ERROR: Workspace no encontrado: $XCODE_WORKSPACE"
+            echo "Verificando estructura..."
+            ls -la ios/ | grep -E "\.xcworkspace|\.xcodeproj"
+            exit 1
+          fi
+          echo "✅ Workspace encontrado: $XCODE_WORKSPACE"
           xcodebuild clean build \
             -workspace "$XCODE_WORKSPACE" \
             -scheme "$XCODE_SCHEME" \
