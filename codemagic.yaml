@@ -17,6 +17,14 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd ios && pod install && cd ..
+      - name: Generate JS bundle
+        script: |
+          npx react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output ios/main.jsbundle \
+            --assets-dest ios/
       - name: Build app for simulator
         script: |
           xcodebuild clean build \
@@ -27,11 +35,34 @@ workflows:
             -destination 'platform=iOS Simulator,name=iPhone 14' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            BUNDLE_COMMAND="echo 'Bundle already created'"
+      - name: Verify bundle exists
+        script: |
+          if [ ! -f "ios/main.jsbundle" ]; then
+            echo "ERROR: main.jsbundle not found!"
+            exit 1
+          fi
+          echo "Bundle size: $(du -h ios/main.jsbundle | cut -f1)"
+      - name: Copy bundle to app
+        script: |
+          APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "TSXNEQUIKIL.app" -path "*/Release-iphonesimulator/*" | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: App bundle not found!"
+            exit 1
+          fi
+          if [ -f "ios/main.jsbundle" ]; then
+            cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
+            echo "Bundle copied to app: $APP_PATH/main.jsbundle"
+          else
+            echo "ERROR: main.jsbundle not found to copy!"
+            exit 1
+          fi
       - name: Create IPA for simulator
         script: |
+          APP_PATH=$(find $HOME/Library/Developer/Xcode/DerivedData -name "TSXNEQUIKIL.app" -path "*/Release-iphonesimulator/*" | head -1)
           mkdir -p build/Release-iphonesimulator/Payload
-          cp -r $HOME/Library/Developer/Xcode/DerivedData/*/Build/Products/Release-iphonesimulator/TSXNEQUIKIL.app build/Release-iphonesimulator/Payload/
+          cp -r "$APP_PATH" build/Release-iphonesimulator/Payload/TSXNEQUIKIL.app
           cd build/Release-iphonesimulator
           zip -r TSXNEQUIKIL-simulator.ipa Payload
           cd ../..
