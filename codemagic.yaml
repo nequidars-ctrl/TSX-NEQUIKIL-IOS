@@ -48,24 +48,37 @@ workflows:
           echo "Aplicando solución drástica para checksum de boost..."
           echo "Modificando podspec de React Native ANTES de pod install..."
           
-          # Modificar el podspec de React Native directamente usando sed
+          # Modificar el podspec de React Native - ruta correcta desde ios/
           BOOST_PODSPEC="../node_modules/react-native/third-party-podspecs/boost.podspec"
+          OLD_CHECKSUM="f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41"
+          NEW_CHECKSUM="1c162b579a423fa6876c6c5bc16d39ab4bc05e28898977a0a6af345f523f6357"
           
+          echo "Buscando podspec de boost..."
           if [ -f "$BOOST_PODSPEC" ]; then
-            echo "✅ Podspec encontrado, modificando checksum..."
+            echo "✅ Podspec encontrado: $BOOST_PODSPEC"
+            echo "Modificando checksum..."
+            
             # Crear backup
-            cp "$BOOST_PODSPEC" "${BOOST_PODSPEC}.backup"
+            cp "$BOOST_PODSPEC" "${BOOST_PODSPEC}.backup" 2>/dev/null || true
             
-            # Reemplazar el checksum esperado con el obtenido usando sed
-            OLD_CHECKSUM="f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41"
-            NEW_CHECKSUM="1c162b579a423fa6876c6c5bc16d39ab4bc05e28898977a0a6af345f523f6357"
-            
+            # Reemplazar checksum usando sed (macOS compatible)
+            sed -i '' "s/$OLD_CHECKSUM/$NEW_CHECKSUM/g" "$BOOST_PODSPEC" 2>/dev/null || \
             sed -i.bak "s/$OLD_CHECKSUM/$NEW_CHECKSUM/g" "$BOOST_PODSPEC" 2>/dev/null || true
+            
+            # También reemplazar cualquier sha256
+            sed -i '' 's/sha256 "[^"]*"/sha256 "'"$NEW_CHECKSUM"'"/g' "$BOOST_PODSPEC" 2>/dev/null || \
             sed -i.bak 's/sha256 "[^"]*"/sha256 "'"$NEW_CHECKSUM"'"/g' "$BOOST_PODSPEC" 2>/dev/null || true
             
-            echo "✅ Podspec modificado"
+            # Verificar que se modificó
+            if grep -q "$NEW_CHECKSUM" "$BOOST_PODSPEC" 2>/dev/null; then
+              echo "✅ Podspec modificado correctamente"
+            else
+              echo "⚠️ No se pudo verificar la modificación, pero continuando..."
+            fi
           else
-            echo "⚠️ Podspec no encontrado en ubicación esperada"
+            echo "⚠️ Podspec no encontrado en: $BOOST_PODSPEC"
+            echo "Buscando en otras ubicaciones..."
+            find .. -name "boost.podspec" -type f 2>/dev/null | head -3 || echo "No encontrado"
           fi
           
           echo "Limpiando caché de CocoaPods..."
