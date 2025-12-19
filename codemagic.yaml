@@ -112,15 +112,30 @@ workflows:
           
           echo "✅ Workspace generado correctamente: TSXNEQUIKIL.xcworkspace"
           
-          # Corregir configuraciones del proyecto después de pod install usando xcodebuild
+          # Corregir configuraciones del proyecto después de pod install
           echo "🔧 Corrigiendo configuraciones del proyecto..."
           PBXPROJ="TSXNEQUIKIL.xcodeproj/project.pbxproj"
           
           if [ -f "$PBXPROJ" ]; then
-            # Usar xcodebuild para establecer las configuraciones necesarias
-            echo "Estableciendo PRODUCT_NAME..."
-            xcodebuild -project TSXNEQUIKIL.xcodeproj -target TSXNEQUIKIL -configuration Release PRODUCT_NAME=TSXNEQUIKIL 2>/dev/null || true
-            echo "✅ Configuraciones del proyecto corregidas"
+            # Verificar y agregar PRODUCT_NAME si falta
+            if ! grep -q "PRODUCT_NAME = TSXNEQUIKIL" "$PBXPROJ"; then
+              echo "Agregando PRODUCT_NAME..."
+              sed -i.bak 's/buildSettings = {/buildSettings = {\
+				PRODUCT_NAME = TSXNEQUIKIL;/' "$PBXPROJ" 2>/dev/null || \
+              sed -i '' 's/buildSettings = {/buildSettings = {\
+				PRODUCT_NAME = TSXNEQUIKIL;/' "$PBXPROJ" 2>/dev/null || true
+            fi
+            
+            # Verificar y agregar INFOPLIST_FILE si falta
+            if ! grep -q "INFOPLIST_FILE = TSXNEQUIKIL/Info.plist" "$PBXPROJ"; then
+              echo "Agregando INFOPLIST_FILE..."
+              sed -i.bak 's/PRODUCT_NAME = TSXNEQUIKIL;/PRODUCT_NAME = TSXNEQUIKIL;\
+				INFOPLIST_FILE = TSXNEQUIKIL\/Info.plist;/' "$PBXPROJ" 2>/dev/null || \
+              sed -i '' 's/PRODUCT_NAME = TSXNEQUIKIL;/PRODUCT_NAME = TSXNEQUIKIL;\
+				INFOPLIST_FILE = TSXNEQUIKIL\/Info.plist;/' "$PBXPROJ" 2>/dev/null || true
+            fi
+            
+            echo "✅ Configuraciones del proyecto verificadas"
           else
             echo "⚠️ project.pbxproj no encontrado, pero continuando..."
           fi
